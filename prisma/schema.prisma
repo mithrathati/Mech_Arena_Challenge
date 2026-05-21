@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ChallengeStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+  DISPUTED
+  SETTLED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  WIN_CREDIT
+  LOSS_DEBIT
+}
+
+enum TransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  mechArenaId   String    @unique
+  email         String    @unique
+  password      String
+  role          Role      @default(USER)
+  balance       Float     @default(0.0)
+  currency      String    @default("USD")
+  country       String
+  squadPower    Int       @default(0)
+  
+  // Saved Bank Details
+  bankName      String?
+  accountHolder String?
+  accountNumber String?
+  ifscCode      String?
+  
+  challengesSent     Challenge[] @relation("Challenger")
+  challengesReceived Challenge[] @relation("Challenged")
+  transactions       Transaction[]
+  messages           Message[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Challenge {
+  id             String          @id @default(cuid())
+  challengerId   String
+  challenger     User            @relation("Challenger", fields: [challengerId], references: [id])
+  challengedId   String
+  challenged     User            @relation("Challenged", fields: [challengedId], references: [id])
+  amount         Float
+  status         ChallengeStatus @default(PENDING)
+  winnerId       String?
+  challengerProof String?         // Challenger's screenshot
+  challengedProof String?         // Challenged's screenshot
+  messages       Message[]
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Message {
+  id          String    @id @default(cuid())
+  content     String
+  senderId    String
+  sender      User      @relation(fields: [senderId], references: [id])
+  challengeId String
+  challenge   Challenge @relation(fields: [challengeId], references: [id])
+  createdAt   DateTime  @default(now())
+}
+
+model Transaction {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id])
+  type          TransactionType
+  amount        Float
+  commission    Float?            @default(0.0)
+  netAmount     Float?            
+  currency      String
+  status        TransactionStatus @default(PENDING)
+  proofUrl      String?           // Path to uploaded screenshot
+  transactionId String?           // UPI/Bank Transaction ID
+  
+  // Balance snapshot for history
+  previousBalance Float?
+  newBalance      Float?
+  
+  // Bank details for withdrawals
+  bankName      String?
+  accountHolder String?
+  accountNumber String?
+  ifscCode      String?
+  
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
