@@ -3,11 +3,12 @@ import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Shield, Lock, Mail, Sword, ArrowRight } from 'lucide-react';
+import { Shield, Lock, Mail, Sword, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -80,16 +81,32 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest ml-1">Password</label>
+              <div className="flex justify-between items-center ml-1">
+                <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">Password</label>
+                <button 
+                  type="button"
+                  onClick={() => alert("Please contact admin to reset your password.")}
+                  className="text-[9px] font-bold text-neon-purple hover:text-neon-blue transition-colors uppercase tracking-tighter"
+                >
+                  Forgot Password?
+                </button>
+              </div>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-blue transition-colors" />
                 <input 
-                  type="password" 
+                  type={showPassword ? "text" : "password"} 
                   placeholder="••••••••" 
-                  className="w-full bg-black/50 border border-white/10 p-4 pl-12 rounded-xl text-sm font-medium outline-none focus:border-neon-blue transition-all" 
+                  className="w-full bg-black/50 border border-white/10 p-4 pl-12 pr-12 rounded-xl text-sm font-medium outline-none focus:border-neon-blue transition-all" 
                   onChange={e => setPassword(e.target.value)} 
                   required 
                 />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-blue transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 

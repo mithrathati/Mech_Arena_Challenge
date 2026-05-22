@@ -79,6 +79,8 @@ export default function Dashboard() {
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [showSquadPowerModal, setShowSquadPowerModal] = useState(false);
+  const [newSquadPower, setNewSquadPower] = useState('');
   const [transactionAmount, setTransactionAmount] = useState('');
   const [transactionId, setTransactionId] = useState('');
   const [proofUrl, setProofUrl] = useState('');
@@ -112,17 +114,20 @@ export default function Dashboard() {
           fetch('/api/user/transactions')
         ]);
         
-        const profileData = await profileRes.json();
-        setProfile(profileData);
-        setUsers(await usersRes.json());
-        setChallenges(await challengesRes.json());
-        setTransactions(await transactionsRes.json());
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          setProfile(profileData);
 
-        // Set bank details if available
-        if (profileData.bankName) setBankName(profileData.bankName);
-        if (profileData.accountHolder) setAccountHolder(profileData.accountHolder);
-        if (profileData.accountNumber) setAccountNumber(profileData.accountNumber);
-        if (profileData.ifscCode) setIfscCode(profileData.ifscCode);
+          // Set bank details if available
+          if (profileData.bankName) setBankName(profileData.bankName);
+          if (profileData.accountHolder) setAccountHolder(profileData.accountHolder);
+          if (profileData.accountNumber) setAccountNumber(profileData.accountNumber);
+          if (profileData.ifscCode) setIfscCode(profileData.ifscCode);
+        }
+
+        if (usersRes.ok) setUsers(await usersRes.json());
+        if (challengesRes.ok) setChallenges(await challengesRes.json());
+        if (transactionsRes.ok) setTransactions(await transactionsRes.json());
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -186,6 +191,29 @@ export default function Dashboard() {
     } else {
       const data = await res.json();
       alert(data.error || "Action failed");
+    }
+  };
+
+  const handleUpdateSquadPower = async () => {
+    const powerValue = parseInt(newSquadPower);
+    if (isNaN(powerValue)) return alert("Enter a valid numeric squad power");
+    
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ squadPower: powerValue }),
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        setProfile(data); // Update profile immediately with returned data
+        setShowSquadPowerModal(false);
+      } else {
+        alert(data.error || "Update failed");
+      }
+    } catch (error) {
+      alert("Failed to update squad power. Please try again.");
     }
   };
 
@@ -301,7 +329,7 @@ export default function Dashboard() {
               <div className="flex items-center gap-2">
                 <Wallet className="w-4 h-4 text-neon-blue" />
                 <span className="font-orbitron font-bold text-neon-blue">
-                  {profile.currency} {profile.balance.toFixed(2)}
+                  {profile.currency} {(profile.balance ?? 0).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -345,9 +373,18 @@ export default function Dashboard() {
                   PLAYER: <span className="text-neon-blue">{session.user?.name}</span>
                 </h2>
                 <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                  <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-md border border-white/10">
+                  <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-md border border-white/10 group/sp">
                     <Zap className="w-4 h-4 text-neon-purple" />
-                    <span className="text-xs font-bold text-gray-400 uppercase">Squad Power: <span className="text-white">{profile.squadPower || 4200}</span></span>
+                    <span className="text-xs font-bold text-gray-400 uppercase">Squad Power: <span className="text-white">{profile.squadPower ?? 0}</span></span>
+                    <button 
+                      onClick={() => {
+                        setNewSquadPower((profile.squadPower ?? 0).toString());
+                        setShowSquadPowerModal(true);
+                      }}
+                      className="ml-1 opacity-0 group-hover/sp:opacity-100 transition-opacity p-0.5 hover:text-neon-blue"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
                   </div>
                   <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-md border border-white/10">
                     <Activity className="w-4 h-4 text-neon-green" />
@@ -402,7 +439,7 @@ export default function Dashboard() {
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Bet Amount</p>
-                        <p className="font-orbitron font-bold text-neon-green">{profile.currency} {ch.amount.toFixed(2)}</p>
+                        <p className="font-orbitron font-bold text-neon-green">{profile.currency} {(ch.amount ?? 0).toFixed(2)}</p>
                       </div>
                     </div>
 
@@ -551,7 +588,7 @@ export default function Dashboard() {
                 <div className="absolute top-0 left-0 w-1 h-full bg-neon-purple"></div>
                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Current Balance</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-orbitron font-black text-white">{profile.balance.toFixed(2)}</span>
+                  <span className="text-3xl font-orbitron font-black text-white">{(profile.balance ?? 0).toFixed(2)}</span>
                   <span className="text-xs font-bold text-neon-purple uppercase tracking-widest">{profile.currency}</span>
                 </div>
               </div>
@@ -618,9 +655,9 @@ export default function Dashboard() {
                         </td>
                         <td className="p-4">
                           <div className="flex flex-col">
-                            <span className="font-orbitron font-bold text-xs">{profile.currency} {t.amount.toFixed(2)}</span>
+                            <span className="font-orbitron font-bold text-xs">{profile.currency} {(t.amount ?? 0).toFixed(2)}</span>
                             {t.type === 'WITHDRAWAL' && t.netAmount && (
-                              <span className="text-[8px] text-neon-green font-bold italic">Net: {t.netAmount.toFixed(2)}</span>
+                              <span className="text-[8px] text-neon-green font-bold italic">Net: {(t.netAmount ?? 0).toFixed(2)}</span>
                             )}
                           </div>
                         </td>
@@ -831,7 +868,7 @@ export default function Dashboard() {
 
                 <div className="flex items-center justify-between py-2 px-1">
                   <span className="text-[10px] font-bold text-gray-500 uppercase">Current Balance</span>
-                  <span className="text-xs font-bold text-white font-orbitron">{profile.currency} {profile.balance.toFixed(2)}</span>
+                  <span className="text-xs font-bold text-white font-orbitron">{profile.currency} {(profile.balance ?? 0).toFixed(2)}</span>
                 </div>
 
                 <button 
@@ -1071,6 +1108,55 @@ export default function Dashboard() {
                     Cancel
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+        {/* Squad Power Update Modal */}
+        {showSquadPowerModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#050816]/95 backdrop-blur-xl flex items-center justify-center p-4 z-50"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="glass-panel border-neon-blue/30 p-8 rounded-3xl max-w-sm w-full hud-border"
+            >
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-orbitron font-black text-neon-blue uppercase tracking-tighter">Update Squad Power</h2>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Refine your combat rating</p>
+                </div>
+                <button onClick={() => setShowSquadPowerModal(false)} className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">New Squad Power</label>
+                  <div className="relative">
+                    <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
+                    <input 
+                      type="number" 
+                      placeholder="e.g. 4200" 
+                      className="w-full bg-black/50 border border-white/10 p-3 pl-10 rounded-xl font-orbitron font-bold text-neon-blue outline-none focus:border-neon-blue transition-colors"
+                      value={newSquadPower}
+                      onChange={(e) => setNewSquadPower(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  onClick={handleUpdateSquadPower} 
+                  className="w-full bg-neon-blue text-black py-4 rounded-xl font-orbitron font-black uppercase tracking-tighter hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_30px_rgba(0,229,255,0.3)]"
+                >
+                  Update Profile
+                </button>
               </div>
             </motion.div>
           </motion.div>

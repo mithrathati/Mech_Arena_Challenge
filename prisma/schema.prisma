@@ -51,6 +51,7 @@ model User {
   currency      String    @default("USD")
   country       String
   squadPower    Int       @default(0)
+  winStreak     Int       @default(0)
   
   // Saved Bank Details
   bankName      String?
