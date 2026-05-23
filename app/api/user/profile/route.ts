@@ -23,6 +23,7 @@ export async function GET() {
         accountHolder: true,
         accountNumber: true,
         ifscCode: true,
+        requirePasswordChange: true,
       }
     });
 

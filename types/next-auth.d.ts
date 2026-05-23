@@ -8,6 +8,7 @@ declare module "next-auth" {
       role: string;
       balance: number;
       currency: string;
+      requirePasswordChange: boolean;
     } & DefaultSession["user"];
   }
 
@@ -15,6 +16,7 @@ declare module "next-auth" {
     role: string;
     balance: number;
     currency: string;
+    requirePasswordChange: boolean;
   }
 }
 
@@ -23,5 +25,6 @@ declare module "next-auth/jwt" {
     role: string;
     balance: number;
     currency: string;
+    requirePasswordChange: boolean;
   }
 }

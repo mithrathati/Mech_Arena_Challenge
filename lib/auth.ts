@@ -29,6 +29,7 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           balance: user.balance,
           currency: user.currency,
+          requirePasswordChange: user.requirePasswordChange,
         };
       }
     })
@@ -40,6 +41,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
         session.user.balance = token.balance as number;
         session.user.currency = token.currency as string;
+        session.user.requirePasswordChange = token.requirePasswordChange as boolean;
       }
       return session;
     },
@@ -48,6 +50,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.balance = user.balance;
         token.currency = user.currency;
+        token.requirePasswordChange = user.requirePasswordChange;
       }
       return token;
     }

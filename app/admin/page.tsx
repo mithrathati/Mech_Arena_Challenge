@@ -17,6 +17,8 @@ export default function AdminPanel() {
   const [selectedWinners, setSelectedWinners] = useState<Record<string, string>>({});
   const [viewingHistoryUser, setViewingHistoryUser] = useState<any>(null);
   const [userHistoryData, setUserHistoryData] = useState<any[]>([]);
+  const [resettingUser, setResettingUser] = useState<any>(null);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
 
   const fetchAllData = async () => {
     try {
@@ -114,6 +116,27 @@ export default function AdminPanel() {
     const res = await fetch(`/api/admin/transactions?userId=${userId}`);
     const data = await res.json();
     setUserHistoryData(data);
+  };
+
+  const handleResetPassword = async (userId: string) => {
+    if (!confirm("Are you sure you want to reset this user's password?")) return;
+    
+    try {
+      const res = await fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        setTempPassword(data.tempPassword);
+      } else {
+        alert(data.error || "Failed to reset password");
+      }
+    } catch (err) {
+      alert("Error resetting password");
+    }
   };
 
   if (loading) return <div className="min-h-screen bg-slate-950 text-white p-10 flex items-center justify-center font-bold text-xl uppercase tracking-widest animate-pulse">Loading Admin Data...</div>;
@@ -367,6 +390,12 @@ export default function AdminPanel() {
                           >
                             Manage
                           </button>
+                          <button 
+                            onClick={() => { setResettingUser(user); handleResetPassword(user.id); }}
+                            className="bg-red-600/10 text-red-400 hover:bg-red-600 hover:text-white px-3 py-1 rounded text-sm font-medium transition-all"
+                          >
+                            Reset PWD
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -504,6 +533,29 @@ export default function AdminPanel() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Temporary Password Modal */}
+        {tempPassword && (
+          <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-6 z-50">
+            <div className="bg-slate-900 border border-red-500/30 p-8 rounded-2xl max-w-md w-full text-center">
+              <h3 className="text-xl font-bold text-red-500 mb-4 uppercase">New Temporary Password</h3>
+              <p className="text-gray-400 text-sm mb-6 uppercase tracking-widest">User: {resettingUser?.username}</p>
+              <div className="bg-black/50 border border-white/10 p-4 rounded-xl mb-8">
+                <p className="text-3xl font-mono font-bold text-white tracking-widest select-all">{tempPassword}</p>
+              </div>
+              <p className="text-[10px] text-gray-500 mb-8 uppercase font-bold leading-relaxed">
+                Copy this password and share it with the user. <br />
+                They can use this to login and then change their password.
+              </p>
+              <button 
+                onClick={() => { setTempPassword(null); setResettingUser(null); }}
+                className="w-full bg-red-600 text-white py-4 rounded-xl font-bold uppercase tracking-tighter hover:bg-red-700 transition-all"
+              >
+                Close and Clear
+              </button>
             </div>
           </div>
         )}

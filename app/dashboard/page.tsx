@@ -18,6 +18,7 @@ import {
   Camera, 
   Check, 
   X,
+  Lock,
   User,
   Activity,
   Award,
@@ -39,6 +40,7 @@ interface UserProfile {
   accountHolder?: string;
   accountNumber?: string;
   ifscCode?: string;
+  requirePasswordChange: boolean;
 }
 
 interface Challenge {
@@ -71,7 +73,8 @@ export default function Dashboard() {
     balance: 0, 
     currency: 'USD', 
     squadPower: 0, 
-    winStreak: 0 
+    winStreak: 0,
+    requirePasswordChange: false
   });
   const [transactions, setTransactions] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null);
@@ -80,6 +83,9 @@ export default function Dashboard() {
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showSquadPowerModal, setShowSquadPowerModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [newSquadPower, setNewSquadPower] = useState('');
   const [transactionAmount, setTransactionAmount] = useState('');
   const [transactionId, setTransactionId] = useState('');
@@ -133,6 +139,12 @@ export default function Dashboard() {
       }
     }
   };
+
+  useEffect(() => {
+    if (profile && (profile as any).requirePasswordChange) {
+      setShowChangePasswordModal(true);
+    }
+  }, [profile]);
 
   useEffect(() => {
     fetchData();
@@ -214,6 +226,33 @@ export default function Dashboard() {
       }
     } catch (error) {
       alert("Failed to update squad power. Please try again.");
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 6) return alert("Password must be at least 6 characters");
+    if (newPassword !== confirmPassword) return alert("Passwords do not match");
+    
+    try {
+      const res = await fetch('/api/user/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword }),
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        alert("Password updated successfully!");
+        setShowChangePasswordModal(false);
+        setNewPassword('');
+        setConfirmPassword('');
+        // Update local profile state to reflect change requirement met
+        setProfile(prev => ({ ...prev, requirePasswordChange: false }));
+      } else {
+        alert(data.error || "Update failed");
+      }
+    } catch (error) {
+      alert("Failed to update password. Please try again.");
     }
   };
 
@@ -333,6 +372,13 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
+            <button 
+              onClick={() => setShowChangePasswordModal(true)}
+              className="p-2 bg-white/5 hover:bg-neon-purple/20 rounded-lg border border-white/10 hover:border-neon-purple/50 transition-all text-gray-400 hover:text-neon-purple"
+              title="Change Password"
+            >
+              <Lock className="w-5 h-5" />
+            </button>
             <button 
               onClick={() => signOut()}
               className="p-2 bg-white/5 hover:bg-red-500/20 rounded-lg border border-white/10 hover:border-red-500/50 transition-all text-gray-400 hover:text-red-500"
@@ -1157,6 +1203,82 @@ export default function Dashboard() {
                 >
                   Update Profile
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Change Password Modal */}
+        {showChangePasswordModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#050816]/98 backdrop-blur-2xl flex items-center justify-center p-4 z-[100]"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="glass-panel border-neon-purple/30 p-8 rounded-3xl max-w-sm w-full hud-border"
+            >
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-orbitron font-black text-neon-purple uppercase tracking-tighter">Security Protocol</h2>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">
+                    {(profile as any).requirePasswordChange ? "Temporary password detected" : "Update your password"}
+                  </p>
+                </div>
+                {!(profile as any).requirePasswordChange && (
+                  <button onClick={() => setShowChangePasswordModal(false)} className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors">
+                    <X className="w-6 h-6" />
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">New Password</label>
+                    <div className="relative group">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-purple transition-colors" />
+                      <input 
+                        type="password" 
+                        placeholder="••••••••" 
+                        className="w-full bg-black/50 border border-white/10 p-3 pl-10 rounded-xl font-medium text-white outline-none focus:border-neon-purple transition-colors"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">Confirm Password</label>
+                    <div className="relative group">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-purple transition-colors" />
+                      <input 
+                        type="password" 
+                        placeholder="••••••••" 
+                        className="w-full bg-black/50 border border-white/10 p-3 pl-10 rounded-xl font-medium text-white outline-none focus:border-neon-purple transition-colors"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={handleChangePassword} 
+                  className="w-full bg-neon-purple text-black py-4 rounded-xl font-orbitron font-black uppercase tracking-tighter hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_30px_rgba(139,92,246,0.3)]"
+                >
+                  Secure Account
+                </button>
+                
+                {(profile as any).requirePasswordChange && (
+                  <p className="text-[8px] text-gray-600 text-center uppercase font-bold tracking-widest">
+                    You must update your password to access the arena.
+                  </p>
+                )}
               </div>
             </motion.div>
           </motion.div>
