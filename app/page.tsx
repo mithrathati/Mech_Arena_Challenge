@@ -1,9 +1,12 @@
 'use client';
-import { motion } from 'framer-motion';
-import { Sword, Zap, Shield, Trophy, Users, ArrowRight, Play } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sword, Zap, Shield, Trophy, Users, ArrowRight, Play, Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function Home() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#050816] text-white selection:bg-neon-blue/30 overflow-x-hidden relative">
       {/* HUD Effects */}
@@ -24,7 +27,9 @@ export default function Home() {
             MECH<span className="text-neon-blue">ARENA</span>
           </h1>
         </div>
-        <div className="flex items-center gap-4">
+        
+        {/* Desktop Nav */}
+        <div className="hidden md:flex items-center gap-4">
           <Link href="/login" className="text-xs font-orbitron font-bold uppercase tracking-widest hover:text-neon-blue transition-colors px-4 py-2">
             Login
           </Link>
@@ -32,7 +37,43 @@ export default function Home() {
             Register
           </Link>
         </div>
+
+        {/* Mobile Menu Toggle */}
+        <button 
+          className="md:hidden p-2 text-white hover:text-neon-blue transition-colors"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[45] bg-[#050816]/95 backdrop-blur-xl md:hidden flex flex-col items-center justify-center gap-8"
+          >
+            <Link 
+              href="/login" 
+              onClick={() => setIsMenuOpen(false)}
+              className="text-2xl font-orbitron font-black uppercase tracking-[0.2em] hover:text-neon-blue transition-colors"
+            >
+              Login
+            </Link>
+            <Link 
+              href="/register" 
+              onClick={() => setIsMenuOpen(false)}
+              className="bg-neon-blue text-black px-12 py-4 rounded-xl font-orbitron font-black text-lg uppercase tracking-widest shadow-[0_0_30px_rgba(0,229,255,0.4)]"
+            >
+              Register
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 overflow-hidden">
@@ -45,19 +86,19 @@ export default function Home() {
             <span className="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-orbitron font-bold text-neon-blue uppercase tracking-[0.3em] mb-6">
               Mech Arena Betting Platform
             </span>
-            <h1 className="text-5xl lg:text-8xl font-orbitron font-black tracking-tighter uppercase mb-8 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-8xl font-orbitron font-black tracking-tighter uppercase mb-8 leading-tight">
               PLAY & WIN <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue via-neon-purple to-neon-blue bg-[length:200%_auto] animate-[gradient_3s_linear_infinite]">REAL MONEY</span>
             </h1>
-            <p className="max-w-2xl mx-auto text-gray-400 text-lg lg:text-xl font-medium mb-12 leading-relaxed">
+            <p className="max-w-2xl mx-auto text-gray-400 text-base sm:text-lg lg:text-xl font-medium mb-12 leading-relaxed px-4 sm:px-0">
               Challenge real players in Mech Arena, place your bets, and win money. 
               The most secure and transparent betting hub for Mech Arena fans.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Link href="/register" className="w-full sm:w-auto bg-neon-blue text-black px-10 py-5 rounded-2xl font-orbitron font-black uppercase tracking-tighter hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(0,229,255,0.4)] flex items-center justify-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 max-w-sm sm:max-w-none mx-auto">
+              <Link href="/register" className="w-full sm:w-auto bg-neon-blue text-black px-10 py-5 rounded-2xl font-orbitron font-black uppercase tracking-tighter hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(0,229,255,0.4)] flex items-center justify-center gap-3 text-sm sm:text-base">
                 Join Now <ArrowRight className="w-6 h-6" />
               </Link>
-              <Link href="/login" className="w-full sm:w-auto bg-white/5 border border-white/10 px-10 py-5 rounded-2xl font-orbitron font-black uppercase tracking-tighter hover:bg-white/10 transition-all flex items-center justify-center gap-3">
+              <Link href="/login" className="w-full sm:w-auto bg-white/5 border border-white/10 px-10 py-5 rounded-2xl font-orbitron font-black uppercase tracking-tighter hover:bg-white/10 transition-all flex items-center justify-center gap-3 text-sm sm:text-base">
                 <Play className="w-5 h-5 text-neon-purple" /> Start Playing
               </Link>
             </div>

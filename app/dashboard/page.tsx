@@ -345,68 +345,71 @@ export default function Dashboard() {
       <div className="fixed inset-0 grid-bg pointer-events-none opacity-20"></div>
 
       {/* Sticky Glass Navbar */}
-      <nav className="sticky top-0 z-40 bg-[#050816]/80 backdrop-blur-md border-b border-white/5 py-3 px-6 lg:px-12 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-neon-blue to-neon-purple rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,229,255,0.4)]">
-            <Sword className="w-6 h-6 text-black" />
+      <nav className="sticky top-0 z-40 bg-[#050816]/80 backdrop-blur-md border-b border-white/5 py-3 px-4 lg:px-12 flex justify-between items-center">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-neon-blue to-neon-purple rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,229,255,0.4)]">
+            <Sword className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
           </div>
-          <h1 className="font-orbitron font-black text-xl tracking-tighter hidden sm:block">
+          <h1 className="font-orbitron font-black text-lg sm:text-xl tracking-tighter">
             MECH<span className="text-neon-blue">ARENA</span>
           </h1>
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="hidden md:flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-full border border-white/10">
-            <div className="w-2 h-2 bg-neon-green rounded-full animate-pulse shadow-[0_0_8px_#39FF14]"></div>
-            <span className="text-xs font-bold font-orbitron text-gray-400 uppercase tracking-widest">
-              {users.length} Players Online
+        <div className="flex items-center gap-3 sm:gap-6">
+          <div className="hidden sm:flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+            <div className="w-1.5 h-1.5 bg-neon-green rounded-full animate-pulse shadow-[0_0_8px_#39FF14]"></div>
+            <span className="text-[10px] font-bold font-orbitron text-gray-400 uppercase tracking-widest">
+              {users.length} <span className="hidden md:inline">Players</span> Online
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className="flex flex-col items-end">
-              <div className="flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-neon-blue" />
-                <span className="font-orbitron font-bold text-neon-blue">
-                  {profile.currency} {(profile.balance ?? 0).toFixed(2)}
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neon-blue" />
+                <span className="font-orbitron font-bold text-sm sm:text-base text-neon-blue">
+                  <span className="text-[10px] sm:text-xs mr-1 opacity-70">{profile.currency}</span>
+                  {(profile.balance ?? 0).toFixed(2)}
                 </span>
               </div>
             </div>
-            <button 
-              onClick={() => setShowChangePasswordModal(true)}
-              className="p-2 bg-white/5 hover:bg-neon-purple/20 rounded-lg border border-white/10 hover:border-neon-purple/50 transition-all text-gray-400 hover:text-neon-purple"
-              title="Change Password"
-            >
-              <Lock className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={() => signOut()}
-              className="p-2 bg-white/5 hover:bg-red-500/20 rounded-lg border border-white/10 hover:border-red-500/50 transition-all text-gray-400 hover:text-red-500"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <button 
+                onClick={() => setShowChangePasswordModal(true)}
+                className="p-1.5 sm:p-2 bg-white/5 hover:bg-neon-purple/20 rounded-lg border border-white/10 hover:border-neon-purple/50 transition-all text-gray-400 hover:text-neon-purple"
+                title="Change Password"
+              >
+                <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+              <button 
+                onClick={() => signOut()}
+                className="p-1.5 sm:p-2 bg-white/5 hover:bg-red-500/20 rounded-lg border border-white/10 hover:border-red-500/50 transition-all text-gray-400 hover:text-red-500"
+              >
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto p-6 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
         
         {/* Left Column: Profile & Challenges */}
-        <div className="lg:col-span-8 space-y-10">
+        <div className="lg:col-span-8 space-y-8 lg:space-y-10">
           
           {/* Hero Profile Section */}
           <motion.section 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-panel rounded-2xl p-6 lg:p-8 relative overflow-hidden group"
+            className="glass-panel rounded-2xl p-5 sm:p-6 lg:p-8 relative overflow-hidden group"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-neon-blue/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-neon-blue/10 transition-colors"></div>
             
-            <div className="flex flex-col md:flex-row gap-8 items-center relative z-10">
+            <div className="flex flex-col md:flex-row gap-6 lg:gap-8 items-center relative z-10">
               <div className="relative">
-                <div className="w-32 h-32 rounded-2xl border-2 border-neon-blue/50 p-1 rotate-3 hover:rotate-0 transition-transform duration-500">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl border-2 border-neon-blue/50 p-1 rotate-3 hover:rotate-0 transition-transform duration-500">
                   <div className="w-full h-full bg-gray-800 rounded-xl overflow-hidden flex items-center justify-center bg-[url('/pilot_bg.jpg')] bg-cover">
-                    <User className="w-16 h-16 text-neon-blue/20" />
+                    <User className="w-12 h-12 sm:w-16 sm:h-16 text-neon-blue/20" />
                   </div>
                 </div>
                 <div className="absolute -bottom-2 -right-2 bg-neon-blue text-black font-black px-2 py-0.5 rounded text-[10px] font-orbitron">
@@ -414,39 +417,39 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="flex-1 text-center md:text-left space-y-2">
-                <h2 className="text-3xl font-orbitron font-black tracking-tight uppercase">
+              <div className="flex-1 text-center md:text-left space-y-3 sm:space-y-2">
+                <h2 className="text-2xl sm:text-3xl font-orbitron font-black tracking-tight uppercase">
                   PLAYER: <span className="text-neon-blue">{session.user?.name}</span>
                 </h2>
-                <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                  <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-md border border-white/10 group/sp">
-                    <Zap className="w-4 h-4 text-neon-purple" />
-                    <span className="text-xs font-bold text-gray-400 uppercase">Squad Power: <span className="text-white">{profile.squadPower ?? 0}</span></span>
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 sm:gap-4">
+                  <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-md border border-white/10 group/sp">
+                    <Zap className="w-3.5 h-3.5 text-neon-purple" />
+                    <span className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase">SP: <span className="text-white">{profile.squadPower ?? 0}</span></span>
                     <button 
                       onClick={() => {
                         setNewSquadPower((profile.squadPower ?? 0).toString());
                         setShowSquadPowerModal(true);
                       }}
-                      className="ml-1 opacity-0 group-hover/sp:opacity-100 transition-opacity p-0.5 hover:text-neon-blue"
+                      className="ml-1 md:opacity-0 group-hover/sp:opacity-100 transition-opacity p-0.5 hover:text-neon-blue"
                     >
                       <Plus className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-md border border-white/10">
-                    <Activity className="w-4 h-4 text-neon-green" />
-                    <span className="text-xs font-bold text-gray-400 uppercase">Win Streak: <span className="text-white">{profile.winStreak || 0}</span></span>
+                  <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
+                    <Activity className="w-3.5 h-3.5 text-neon-green" />
+                    <span className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Streak: <span className="text-white">{profile.winStreak || 0}</span></span>
                   </div>
-                  <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-md border border-white/10">
-                    <Shield className="w-4 h-4 text-neon-blue" />
-                    <span className="text-xs font-bold text-gray-400 uppercase">Status: <span className="text-neon-green">Active</span></span>
+                  <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
+                    <Shield className="w-3.5 h-3.5 text-neon-blue" />
+                    <span className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Status: <span className="text-neon-green">Active</span></span>
                   </div>
                 </div>
               </div>
 
-              <div className="hidden xl:block">
+              <div className="hidden md:block lg:hidden xl:block">
                 <div className="text-center p-4 border-l border-white/10">
                   <p className="text-[10px] font-orbitron text-gray-500 uppercase tracking-widest mb-1">Win Rate</p>
-                  <p className="text-4xl font-black text-neon-purple drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]">74%</p>
+                  <p className="text-3xl sm:text-4xl font-black text-neon-purple drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]">74%</p>
                 </div>
               </div>
             </div>
@@ -539,12 +542,12 @@ export default function Dashboard() {
                 AVAILABLE PLAYERS
               </h2>
               
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-2 rounded-xl focus-within:border-neon-blue transition-colors group">
+              <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-2 rounded-xl focus-within:border-neon-blue transition-colors group w-full sm:w-auto">
                 <Search className="w-4 h-4 text-gray-500 group-focus-within:text-neon-blue" />
                 <input 
                   type="text" 
                   placeholder="Search Players..." 
-                  className="bg-transparent border-none outline-none text-xs w-48 font-bold"
+                  className="bg-transparent border-none outline-none text-xs w-full sm:w-48 font-bold"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -560,13 +563,13 @@ export default function Dashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   key={user.id} 
-                  className="glass-panel rounded-xl p-5 group hover:neon-border-blue transition-all relative overflow-hidden"
+                  className="glass-panel rounded-xl p-4 sm:p-5 group hover:neon-border-blue transition-all relative overflow-hidden"
                 >
                   <div className="absolute top-0 right-0 w-16 h-16 bg-neon-blue/5 rounded-full blur-xl -mr-8 -mt-8"></div>
                   
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center border border-white/10 group-hover:border-neon-blue/50 transition-colors overflow-hidden">
-                      <User className="w-6 h-6 text-gray-600 group-hover:text-neon-blue transition-colors" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gray-800 flex items-center justify-center border border-white/10 group-hover:border-neon-blue/50 transition-colors overflow-hidden">
+                      <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 group-hover:text-neon-blue transition-colors" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -575,7 +578,7 @@ export default function Dashboard() {
                       </div>
                       <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">SQUAD POWER: {user.squadPower || 4200}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <p className="text-[10px] text-neon-blue font-black uppercase tracking-tighter">ID: {user.mechArenaId}</p>
+                        <p className="text-[9px] sm:text-[10px] text-neon-blue font-black uppercase tracking-tighter">ID: {user.mechArenaId}</p>
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -603,7 +606,7 @@ export default function Dashboard() {
 
                   <button 
                     onClick={() => setSelectedUser(user)}
-                    className="w-full py-2 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-lg font-orbitron font-bold text-[10px] uppercase tracking-widest hover:bg-neon-blue hover:text-black transition-all active:scale-95"
+                    className="w-full py-2.5 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-lg font-orbitron font-bold text-[10px] uppercase tracking-widest hover:bg-neon-blue hover:text-black transition-all active:scale-95"
                   >
                     Send Challenge
                   </button>
@@ -614,13 +617,13 @@ export default function Dashboard() {
         </div>
 
         {/* Right Column: Wallet & History */}
-        <div className="lg:col-span-4 space-y-8">
+        <div className="lg:col-span-4 space-y-6 lg:space-y-8">
           
           {/* Wallet Section */}
           <motion.section 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="glass-panel rounded-2xl p-6 relative overflow-hidden"
+            className="glass-panel rounded-2xl p-5 sm:p-6 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-neon-purple/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
             
@@ -629,12 +632,12 @@ export default function Dashboard() {
               WALLET
             </h2>
 
-            <div className="space-y-6">
+            <div className="space-y-5 lg:space-y-6">
               <div className="p-4 bg-white/5 rounded-xl border border-white/10 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 h-full bg-neon-purple"></div>
                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Current Balance</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-orbitron font-black text-white">{(profile.balance ?? 0).toFixed(2)}</span>
+                  <span className="text-2xl sm:text-3xl font-orbitron font-black text-white">{(profile.balance ?? 0).toFixed(2)}</span>
                   <span className="text-xs font-bold text-neon-purple uppercase tracking-widest">{profile.currency}</span>
                 </div>
               </div>
@@ -642,21 +645,21 @@ export default function Dashboard() {
               <div className="grid grid-cols-2 gap-3">
                 <button 
                   onClick={() => setShowDeposit(true)}
-                  className="flex flex-col items-center gap-2 p-4 bg-neon-green/5 border border-neon-green/20 rounded-xl hover:bg-neon-green/10 hover:border-neon-green transition-all group"
+                  className="flex flex-col items-center gap-2 p-3 sm:p-4 bg-neon-green/5 border border-neon-green/20 rounded-xl hover:bg-neon-green/10 hover:border-neon-green transition-all group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-neon-green/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Plus className="w-5 h-5 text-neon-green" />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-neon-green/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-neon-green" />
                   </div>
-                  <span className="text-[10px] font-orbitron font-bold uppercase tracking-widest text-neon-green">Deposit</span>
+                  <span className="text-[9px] sm:text-[10px] font-orbitron font-bold uppercase tracking-widest text-neon-green">Deposit</span>
                 </button>
                 <button 
                   onClick={() => setShowWithdraw(true)}
-                  className="flex flex-col items-center gap-2 p-4 bg-neon-blue/5 border border-neon-blue/20 rounded-xl hover:bg-neon-blue/10 hover:border-neon-blue transition-all group"
+                  className="flex flex-col items-center gap-2 p-3 sm:p-4 bg-neon-blue/5 border border-neon-blue/20 rounded-xl hover:bg-neon-blue/10 hover:border-neon-blue transition-all group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-neon-blue/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <ArrowUpRight className="w-5 h-5 text-neon-blue" />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-neon-blue/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5 text-neon-blue" />
                   </div>
-                  <span className="text-[10px] font-orbitron font-bold uppercase tracking-widest text-neon-blue">Withdraw</span>
+                  <span className="text-[9px] sm:text-[10px] font-orbitron font-bold uppercase tracking-widest text-neon-blue">Withdraw</span>
                 </button>
               </div>
 
@@ -677,19 +680,19 @@ export default function Dashboard() {
             </h2>
             
             <div className="glass-panel rounded-2xl overflow-hidden">
-              <div className="max-h-[400px] overflow-y-auto">
-                <table className="w-full text-left text-sm">
+              <div className="max-h-[400px] overflow-y-auto overflow-x-auto">
+                <table className="w-full text-left text-sm min-w-[300px]">
                   <thead className="bg-white/5 text-gray-500 uppercase text-[9px] font-bold sticky top-0 backdrop-blur-md">
                     <tr>
-                      <th className="p-4">Type</th>
-                      <th className="p-4">Amount</th>
-                      <th className="p-4">Status</th>
+                      <th className="p-3 sm:p-4">Type</th>
+                      <th className="p-3 sm:p-4">Amount</th>
+                      <th className="p-3 sm:p-4">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {transactions.length > 0 ? transactions.map((t: any) => (
                       <tr key={t.id} className="hover:bg-white/5 transition-colors">
-                        <td className="p-4">
+                        <td className="p-3 sm:p-4">
                           <div className="flex flex-col">
                             <span className={`text-[10px] font-bold ${
                               t.type === 'DEPOSIT' || t.type === 'WIN_CREDIT' ? 'text-neon-green' : 'text-neon-orange'
@@ -699,7 +702,7 @@ export default function Dashboard() {
                             <span className="text-[8px] text-gray-600 uppercase">{new Date(t.createdAt).toLocaleDateString()}</span>
                           </div>
                         </td>
-                        <td className="p-4">
+                        <td className="p-3 sm:p-4">
                           <div className="flex flex-col">
                             <span className="font-orbitron font-bold text-xs">{profile.currency} {(t.amount ?? 0).toFixed(2)}</span>
                             {t.type === 'WITHDRAWAL' && t.netAmount && (
@@ -707,7 +710,7 @@ export default function Dashboard() {
                             )}
                           </div>
                         </td>
-                        <td className="p-4">
+                        <td className="p-3 sm:p-4">
                           <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-black border ${
                             t.status === 'APPROVED' ? 'bg-neon-green/5 text-neon-green border-neon-green/30' :
                             t.status === 'PENDING' ? 'bg-neon-orange/5 text-neon-orange border-neon-orange/30' :
@@ -1020,28 +1023,28 @@ export default function Dashboard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#050816]/95 backdrop-blur-xl flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-[#050816]/95 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-4 z-50"
           >
             <motion.div 
-              initial={{ y: 20, opacity: 0 }}
+              initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 20, opacity: 0 }}
-              className="glass-panel border-neon-blue/30 rounded-3xl max-w-lg w-full h-[600px] flex flex-col overflow-hidden"
+              exit={{ y: "100%", opacity: 0 }}
+              className="glass-panel border-neon-blue/30 rounded-t-3xl sm:rounded-3xl max-w-lg w-full h-[90vh] sm:h-[600px] flex flex-col overflow-hidden"
             >
-              <div className="p-6 border-b border-white/5 bg-white/5 flex justify-between items-center">
+              <div className="p-4 sm:p-6 border-b border-white/5 bg-white/5 flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-neon-green rounded-full animate-pulse shadow-[0_0_8px_#39FF14]"></div>
-                  <h3 className="font-orbitron font-bold text-sm tracking-widest uppercase">Match Chat</h3>
+                  <h3 className="font-orbitron font-bold text-xs sm:text-sm tracking-widest uppercase">Match Chat</h3>
                 </div>
                 <button onClick={() => setActiveChat(null)} className="p-2 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 scroll-smooth">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 scroll-smooth">
                 {messages.length > 0 ? messages.map((msg: any) => (
                   <div key={msg.id} className={`flex flex-col ${msg.senderId === (session?.user as any).id ? 'items-end' : 'items-start'}`}>
-                    <div className={`max-w-[80%] p-3 rounded-2xl relative ${
+                    <div className={`max-w-[85%] sm:max-w-[80%] p-3 rounded-2xl relative ${
                       msg.senderId === (session?.user as any).id 
                         ? 'bg-neon-blue/10 border border-neon-blue/30 text-white rounded-tr-none' 
                         : 'bg-white/5 border border-white/10 text-gray-300 rounded-tl-none'
@@ -1058,19 +1061,19 @@ export default function Dashboard() {
                 )}
               </div>
 
-              <div className="p-6 bg-[#050816] border-t border-white/5">
+              <div className="p-4 sm:p-6 bg-[#050816] border-t border-white/5 pb-8 sm:pb-6">
                 <div className="flex gap-2 p-1 bg-white/5 rounded-2xl border border-white/10 focus-within:border-neon-blue transition-colors">
                   <input 
                     type="text" 
                     placeholder="Type a message..."
-                    className="flex-1 bg-transparent border-none p-3 outline-none text-sm font-medium"
+                    className="flex-1 bg-transparent border-none p-2.5 sm:p-3 outline-none text-sm font-medium"
                     value={chatMessage}
                     onChange={(e) => setChatMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                   />
                   <button 
                     onClick={handleSendMessage} 
-                    className="bg-neon-blue text-black px-5 rounded-xl font-orbitron font-black text-xs uppercase tracking-tighter hover:scale-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(0,229,255,0.3)]"
+                    className="bg-neon-blue text-black px-4 sm:px-5 rounded-xl font-orbitron font-black text-xs uppercase tracking-tighter hover:scale-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(0,229,255,0.3)]"
                   >
                     Send
                   </button>
