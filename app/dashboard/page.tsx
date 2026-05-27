@@ -747,23 +747,23 @@ export default function Dashboard() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="glass-panel border-neon-green/30 p-8 rounded-3xl max-w-md w-full hud-border"
+              className="glass-panel border-neon-green/30 p-6 sm:p-8 rounded-3xl max-w-md w-full hud-border max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex justify-between items-start mb-6">
+              <div className="flex justify-between items-start mb-6 sticky top-0 bg-[#0B1220]/60 backdrop-blur-md z-10 -m-2 p-2 rounded-t-2xl">
                 <div>
-                  <h2 className="text-2xl font-orbitron font-black text-neon-green uppercase tracking-tighter">Deposit Money</h2>
-                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Add funds to your wallet</p>
+                  <h2 className="text-xl sm:text-2xl font-orbitron font-black text-neon-green uppercase tracking-tighter">Deposit Money</h2>
+                  <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">Add funds to your wallet</p>
                 </div>
                 <button onClick={() => setShowDeposit(false)} className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors">
                   <X className="w-6 h-6" />
                 </button>
               </div>
               
-              <div className="bg-white p-4 rounded-2xl mb-8 flex justify-center border-4 border-neon-green/20 shadow-[0_0_20px_rgba(57,255,20,0.1)]">
-                <img src="/upi_qr.jpeg" alt="UPI QR" className="max-w-[180px] h-auto grayscale brightness-110" />
+              <div className="bg-white p-3 rounded-2xl mb-6 flex justify-center border-4 border-neon-green/20 shadow-[0_0_20px_rgba(57,255,20,0.1)]">
+                <img src="/upi_qr.jpeg" alt="UPI QR" className="max-w-[150px] h-auto grayscale brightness-110" />
               </div>
 
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">Amount to Deposit *</label>
                   <div className="relative">
@@ -834,19 +834,19 @@ export default function Dashboard() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="glass-panel border-neon-blue/30 p-8 rounded-3xl max-w-md w-full hud-border"
+              className="glass-panel border-neon-blue/30 p-6 sm:p-8 rounded-3xl max-w-md w-full hud-border max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex justify-between items-start mb-6">
+              <div className="flex justify-between items-start mb-6 sticky top-0 bg-[#0B1220]/60 backdrop-blur-md z-10 -m-2 p-2 rounded-t-2xl">
                 <div>
-                  <h2 className="text-2xl font-orbitron font-black text-neon-blue uppercase tracking-tighter">Withdraw Money</h2>
-                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Transfer funds to your bank</p>
+                  <h2 className="text-xl sm:text-2xl font-orbitron font-black text-neon-blue uppercase tracking-tighter">Withdraw Money</h2>
+                  <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">Transfer funds to your bank</p>
                 </div>
                 <button onClick={() => setShowWithdraw(false)} className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors">
                   <X className="w-6 h-6" />
                 </button>
               </div>
               
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">Amount to Withdraw *</label>
                   <input 
