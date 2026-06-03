@@ -672,7 +672,7 @@ export default function Dashboard() {
                           c.status === 'PENDING'
                         );
                         if (existingChallenge) {
-                          setActiveChat(existingChallenge);
+                          setActiveChat(existingChallenge.id);
                         } else {
                           // Create a 0-amount challenge for chat negotiation
                           fetch('/api/challenges', {
@@ -683,7 +683,7 @@ export default function Dashboard() {
                           .then(challenge => {
                             if (challenge.id) {
                               setChallenges(prev => [challenge, ...prev]);
-                              setActiveChat(challenge);
+                              setActiveChat(challenge.id);
                             }
                           });
                         }
