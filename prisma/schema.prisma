@@ -52,6 +52,8 @@ model User {
   country       String
   squadPower    Int       @default(0)
   winStreak     Int       @default(0)
+  totalMatches  Int       @default(0)
+  totalWins     Int       @default(0)
   requirePasswordChange Boolean @default(false)
   
   // Saved Bank Details

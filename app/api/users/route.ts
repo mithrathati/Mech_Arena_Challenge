@@ -12,6 +12,8 @@ export async function GET() {
         username: true,
         mechArenaId: true,
         squadPower: true,
+        totalMatches: true,
+        totalWins: true,
         currency: true,
       },
       take: 10 

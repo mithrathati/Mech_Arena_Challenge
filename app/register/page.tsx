@@ -7,13 +7,18 @@ import { User, Mail, Lock, Zap, Globe, DollarSign, ArrowRight, Sword, Shield } f
 export default function Register() {
   const [formData, setFormData] = useState({
     username: '', mechArenaId: '', email: '', password: '', 
-    currency: 'USD', country: '', squadPower: ''
+    currency: 'USD', country: '', squadPower: '',
+    agreedToTerms: false
   });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.agreedToTerms) {
+      alert("You must agree to the Terms and Conditions to register.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch('/api/register', {
@@ -155,6 +160,19 @@ export default function Register() {
                   <option value="PKR">PKR (Rs) - Pakistani Rupee</option>
                 </select>
               </div>
+            </div>
+
+            <div className="md:col-span-2 flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/10 group hover:border-neon-blue/50 transition-all cursor-pointer">
+              <input 
+                type="checkbox" 
+                id="terms"
+                className="w-5 h-5 rounded border-white/10 bg-black/50 text-neon-blue focus:ring-neon-blue transition-all cursor-pointer"
+                onChange={e => setFormData({...formData, agreedToTerms: e.target.checked})}
+                required
+              />
+              <label htmlFor="terms" className="text-[10px] font-bold text-gray-400 uppercase tracking-widest cursor-pointer select-none">
+                I agree to the <a href="/terms" className="text-neon-blue hover:underline">Terms & Conditions</a> and <a href="/privacy" className="text-neon-blue hover:underline">Privacy Policy</a>
+              </label>
             </div>
 
             <button 

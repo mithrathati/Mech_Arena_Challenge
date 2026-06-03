@@ -2,6 +2,7 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Wallet, 
@@ -36,6 +37,8 @@ interface UserProfile {
   currency: string;
   squadPower: number;
   winStreak: number;
+  totalMatches: number;
+  totalWins: number;
   bankName?: string;
   accountHolder?: string;
   accountNumber?: string;
@@ -60,6 +63,8 @@ interface UserInfo {
   username: string;
   mechArenaId: string;
   squadPower: number;
+  totalMatches: number;
+  totalWins: number;
   isActive: boolean;
 }
 
@@ -74,6 +79,8 @@ export default function Dashboard() {
     currency: 'USD', 
     squadPower: 0, 
     winStreak: 0,
+    totalMatches: 0,
+    totalWins: 0,
     requirePasswordChange: false
   });
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -84,6 +91,12 @@ export default function Dashboard() {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showSquadPowerModal, setShowSquadPowerModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [supportQuery, setSupportQuery] = useState('');
+  const [supportFile, setSupportFile] = useState<File | null>(null);
+  const [squadPowerMin, setSquadPowerMin] = useState<string>('');
+  const [squadPowerMax, setSquadPowerMax] = useState<string>('');
+  const [playerTab, setPlayerTab] = useState<'all' | 'online'>('all');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [newSquadPower, setNewSquadPower] = useState('');
@@ -363,7 +376,13 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-4">
+            <button 
+              onClick={() => setShowSupportModal(true)}
+              className="hidden sm:flex items-center gap-2 bg-white/5 hover:bg-neon-blue/20 px-3 py-1.5 rounded-lg border border-white/10 hover:border-neon-blue/50 transition-all text-gray-400 hover:text-neon-blue font-orbitron text-[10px] font-bold uppercase tracking-widest"
+            >
+              <MessageSquare className="w-4 h-4" /> Support
+            </button>
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neon-blue" />
@@ -449,7 +468,9 @@ export default function Dashboard() {
               <div className="hidden md:block lg:hidden xl:block">
                 <div className="text-center p-4 border-l border-white/10">
                   <p className="text-[10px] font-orbitron text-gray-500 uppercase tracking-widest mb-1">Win Rate</p>
-                  <p className="text-3xl sm:text-4xl font-black text-neon-purple drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]">74%</p>
+                  <p className="text-3xl sm:text-4xl font-black text-neon-purple drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]">
+                    {profile.totalMatches > 0 ? Math.round((profile.totalWins / profile.totalMatches) * 100) : 0}%
+                  </p>
                 </div>
               </div>
             </div>
@@ -480,10 +501,14 @@ export default function Dashboard() {
                       <div>
                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Challenge From</p>
                         <h3 className="font-orbitron font-bold text-neon-blue group-hover:text-white transition-colors">
-                          {ch.challengerId === (session?.user as any).id ? ch.challenged.username : ch.challenger.username}
+                          {ch.challengerId === (session?.user as any).id 
+                            ? ch.challenged?.username || "Unknown Unit" 
+                            : ch.challenger?.username || "Unknown Unit"}
                         </h3>
                         <p className="text-[9px] text-neon-purple/80 font-black uppercase tracking-[0.1em] mt-0.5">
-                          Player ID: {ch.challengerId === (session?.user as any).id ? ch.challenged.mechArenaId : ch.challenger.mechArenaId}
+                          Player ID: {ch.challengerId === (session?.user as any).id 
+                            ? ch.challenged?.mechArenaId || "---" 
+                            : ch.challenger?.mechArenaId || "---"}
                         </p>
                       </div>
                       <div className="text-right">
@@ -537,26 +562,71 @@ export default function Dashboard() {
           {/* Available Players Section */}
           <section className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h2 className="font-orbitron font-bold text-lg flex items-center gap-3">
-                <Users className="w-5 h-5 text-neon-blue" />
-                AVAILABLE PLAYERS
-              </h2>
+              <div className="flex flex-col gap-1">
+                <h2 className="font-orbitron font-black text-lg flex items-center gap-3">
+                  <Users className="w-5 h-5 text-neon-blue" />
+                  PLAYER TERMINAL
+                </h2>
+                <div className="flex gap-4 mt-2">
+                  <button 
+                    onClick={() => setPlayerTab('all')}
+                    className={`text-[10px] font-orbitron font-black uppercase tracking-widest pb-1 border-b-2 transition-all ${playerTab === 'all' ? 'border-neon-blue text-neon-blue' : 'border-transparent text-gray-600 hover:text-gray-400'}`}
+                  >
+                    All Units ({users.length})
+                  </button>
+                  <button 
+                    onClick={() => setPlayerTab('online')}
+                    className={`text-[10px] font-orbitron font-black uppercase tracking-widest pb-1 border-b-2 transition-all ${playerTab === 'online' ? 'border-neon-green text-neon-green' : 'border-transparent text-gray-600 hover:text-gray-400'}`}
+                  >
+                    Active Sync ({users.filter(u => u.isActive).length})
+                  </button>
+                </div>
+              </div>
               
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-2 rounded-xl focus-within:border-neon-blue transition-colors group w-full sm:w-auto">
-                <Search className="w-4 h-4 text-gray-500 group-focus-within:text-neon-blue" />
-                <input 
-                  type="text" 
-                  placeholder="Search Players..." 
-                  className="bg-transparent border-none outline-none text-xs w-full sm:w-48 font-bold"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+              <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-2 rounded-xl focus-within:border-neon-blue transition-colors group flex-1 sm:flex-none">
+                  <Search className="w-4 h-4 text-gray-500 group-focus-within:text-neon-blue" />
+                  <input 
+                    type="text" 
+                    placeholder="Search ID/Name..." 
+                    className="bg-transparent border-none outline-none text-xs w-full sm:w-40 font-bold"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-2 py-1 rounded-xl focus-within:border-neon-purple transition-colors group flex-1 sm:flex-none">
+                  <Filter className="w-3.5 h-3.5 text-gray-500 group-focus-within:text-neon-purple" />
+                  <div className="flex items-center gap-1">
+                    <input 
+                      type="number" 
+                      placeholder="Min SP" 
+                      className="bg-transparent border-none outline-none text-[10px] w-12 font-bold uppercase tracking-widest text-white placeholder:text-gray-600"
+                      value={squadPowerMin}
+                      onChange={(e) => setSquadPowerMin(e.target.value)}
+                    />
+                    <span className="text-gray-700 text-[10px]">-</span>
+                    <input 
+                      type="number" 
+                      placeholder="Max SP" 
+                      className="bg-transparent border-none outline-none text-[10px] w-12 font-bold uppercase tracking-widest text-white placeholder:text-gray-600"
+                      value={squadPowerMax}
+                      onChange={(e) => setSquadPowerMax(e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {users
-                .filter((u:any) => u.id !== (session?.user as any).id && u.username.toLowerCase().includes(searchQuery.toLowerCase()))
+                .filter((u:any) => 
+                  u.id !== (session?.user as any).id && 
+                  u.username.toLowerCase().includes(searchQuery.toLowerCase()) &&
+                  (!squadPowerMin || u.squadPower >= parseInt(squadPowerMin)) &&
+                  (!squadPowerMax || u.squadPower <= parseInt(squadPowerMax)) &&
+                  (playerTab === 'all' || u.isActive)
+                )
                 .map((user: any, idx: number) => (
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
@@ -594,22 +664,43 @@ export default function Dashboard() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 mb-4">
-                    <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                      <p className="text-[8px] text-gray-500 uppercase font-bold">Wins</p>
-                      <p className="text-xs font-bold text-neon-green">142</p>
-                    </div>
-                    <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                      <p className="text-[8px] text-gray-500 uppercase font-bold">Rank</p>
-                      <p className="text-xs font-bold text-neon-purple">Elite</p>
-                    </div>
+                    <button 
+                      onClick={() => {
+                        // Open direct chat logic
+                        const existingChallenge = challenges.find(c => 
+                          (c.challengerId === user.id || c.challengedId === user.id) && 
+                          c.status === 'PENDING'
+                        );
+                        if (existingChallenge) {
+                          setActiveChat(existingChallenge);
+                        } else {
+                          // Create a 0-amount challenge for chat negotiation
+                          fetch('/api/challenges', {
+                            method: 'POST',
+                            body: JSON.stringify({ challengedId: user.id, amount: 0 }),
+                          })
+                          .then(res => res.json())
+                          .then(challenge => {
+                            if (challenge.id) {
+                              setChallenges(prev => [challenge, ...prev]);
+                              setActiveChat(challenge);
+                            }
+                          });
+                        }
+                      }}
+                      className="flex items-center justify-center gap-2 py-2 bg-white/5 border border-white/10 text-gray-400 rounded-lg hover:bg-neon-blue/10 hover:text-neon-blue hover:border-neon-blue/30 transition-all group/chat"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 group-hover/chat:scale-110 transition-transform" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Chat</span>
+                    </button>
+                    <button 
+                      onClick={() => setSelectedUser(user)}
+                      className="flex items-center justify-center gap-2 py-2 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-lg font-orbitron font-bold text-[10px] uppercase tracking-widest hover:bg-neon-blue hover:text-black transition-all active:scale-95"
+                    >
+                      <Sword className="w-3.5 h-3.5" />
+                      Challenge
+                    </button>
                   </div>
-
-                  <button 
-                    onClick={() => setSelectedUser(user)}
-                    className="w-full py-2.5 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-lg font-orbitron font-bold text-[10px] uppercase tracking-widest hover:bg-neon-blue hover:text-black transition-all active:scale-95"
-                  >
-                    Send Challenge
-                  </button>
                 </motion.div>
               ))}
             </div>
@@ -731,6 +822,41 @@ export default function Dashboard() {
             </div>
           </section>
         </div>
+
+        {/* Footer Links */}
+        <footer className="lg:col-span-12 mt-12 sm:mt-20 py-10 border-t border-white/5 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="space-y-4">
+              <h4 className="font-orbitron font-black text-xs uppercase tracking-widest text-white">Platform</h4>
+              <ul className="space-y-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                <li><Link href="/terms" className="hover:text-neon-blue transition-colors">Terms of Service</Link></li>
+                <li><Link href="/privacy" className="hover:text-neon-blue transition-colors">Privacy Protocol</Link></li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-orbitron font-black text-xs uppercase tracking-widest text-white">Fair Play</h4>
+              <ul className="space-y-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                <li><Link href="/rules" className="hover:text-neon-purple transition-colors">Rules & Conduct</Link></li>
+                <li><Link href="/refund" className="hover:text-neon-purple transition-colors">Refund Policy</Link></li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-orbitron font-black text-xs uppercase tracking-widest text-white">Support</h4>
+              <ul className="space-y-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                <li><button onClick={() => setShowSupportModal(true)} className="hover:text-neon-green transition-colors">Help Center</button></li>
+                <li><a href="mailto:devilmech934@gmail.com" className="hover:text-neon-green transition-colors">Contact Admin</a></li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-orbitron font-black text-xs uppercase tracking-widest text-white">Legal</h4>
+              <p className="text-[8px] text-gray-600 leading-relaxed font-bold uppercase tracking-widest">
+                © 2026 MECH ARENA CHALLENGE. <br />
+                INDIA ONLY • 18+ ONLY <br />
+                SKILL-BASED GAMING.
+              </p>
+            </div>
+          </div>
+        </footer>
       </main>
 
       {/* Modals & Overlays */}
@@ -1282,6 +1408,90 @@ export default function Dashboard() {
                     You must update your password to access the arena.
                   </p>
                 )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Support Modal */}
+        {showSupportModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#050816]/95 backdrop-blur-xl flex items-center justify-center p-4 z-[110]"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="glass-panel border-neon-blue/30 p-8 rounded-3xl max-w-md w-full hud-border"
+            >
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-orbitron font-black text-neon-blue uppercase tracking-tighter">Support Core</h2>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Submit your technical query</p>
+                </div>
+                <button onClick={() => setShowSupportModal(false)} className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-neon-blue/5 border border-neon-blue/20 p-4 rounded-xl space-y-2">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Auto-Generated Context:</p>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-neon-blue font-bold">Username: {profile.username}</span>
+                    <span className="text-xs text-neon-blue font-bold">Player ID: {(session?.user as any).mechArenaId || profile.id}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">Describe your issue *</label>
+                  <textarea 
+                    rows={4}
+                    placeholder="Provide details about your query..." 
+                    className="w-full bg-black/50 border border-white/10 p-3 rounded-xl font-medium text-white outline-none focus:border-neon-blue transition-colors resize-none text-sm"
+                    value={supportQuery}
+                    onChange={(e) => setSupportQuery(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">Upload Proof (Screenshot) *</label>
+                  <label className="w-full flex flex-col items-center justify-center p-4 border-2 border-dashed border-white/5 hover:border-neon-blue/50 rounded-2xl cursor-pointer bg-white/5 transition-all group">
+                    <Camera className="w-6 h-6 text-gray-600 group-hover:text-neon-blue mb-2" />
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                      {supportFile ? supportFile.name : "Select Proof Screenshot"}
+                    </span>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) setSupportFile(file);
+                      }}
+                    />
+                  </label>
+                </div>
+
+                <button 
+                  onClick={() => {
+                    if (!supportQuery || !supportFile) return alert("Query and proof are mandatory.");
+                    const mailtoUrl = `mailto:devilmech934@gmail.com?subject=Support Request: ${profile.username}&body=Username: ${profile.username}%0D%0APlayer ID: ${(session?.user as any).mechArenaId || profile.id}%0D%0A%0D%0AQuery: %0D%0A${encodeURIComponent(supportQuery)}%0D%0A%0D%0A[PLEASE ATTACH THE SELECTED SCREENSHOT MANUALLY BEFORE SENDING]`;
+                    window.location.href = mailtoUrl;
+                    setShowSupportModal(false);
+                    setSupportQuery('');
+                    setSupportFile(null);
+                  }} 
+                  className="w-full bg-neon-blue text-black py-4 rounded-xl font-orbitron font-black uppercase tracking-tighter hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_30px_rgba(0,229,255,0.3)]"
+                >
+                  Generate Support Email
+                </button>
+                <p className="text-[8px] text-gray-600 text-center uppercase font-bold tracking-widest">
+                  Note: You must attach the screenshot in your email app.
+                </p>
               </div>
             </motion.div>
           </motion.div>
