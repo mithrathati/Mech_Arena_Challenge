@@ -1,39 +1,31 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { put } from "@vercel/blob";
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
-    if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Create uploads directory if it doesn't exist
-    const uploadDir = join(process.cwd(), "public", "uploads");
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (e) {
-      // Directory already exists
+    if (!file) {
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Generate unique filename
-    const filename = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
-    const path = join(uploadDir, filename);
-    
-    await writeFile(path, buffer);
-    const publicUrl = `/uploads/${filename}`;
+    // Check if BLOB_READ_WRITE_TOKEN exists (Vercel Blob)
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const blob = await put(file.name, file, {
+        access: 'public',
+      });
+      return NextResponse.json({ url: blob.url });
+    }
 
-    return NextResponse.json({ url: publicUrl });
-  } catch (error) {
+    // Fallback for local development or if Vercel Blob is not configured
+    // Note: This will still fail on Vercel production without the token
+    return NextResponse.json({ 
+      error: "Cloud storage not configured. Please contact administrator." 
+    }, { status: 501 });
+
+  } catch (error: any) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    return NextResponse.json({ error: "Upload failed: " + error.message }, { status: 500 });
   }
 }

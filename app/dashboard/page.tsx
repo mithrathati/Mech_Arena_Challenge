@@ -311,8 +311,13 @@ export default function Dashboard() {
     }
 
     if (type === 'DEPOSIT') {
-      if (!transactionId || !proofUrl) {
-        return alert("UTR Number and Payment Screenshot are mandatory for deposit.");
+      if (!transactionId) {
+        return alert("UTR Number is mandatory for deposit.");
+      }
+      // Make screenshot optional if upload fails
+      if (!proofUrl) {
+        const confirmNoProof = window.confirm("You haven't uploaded a payment screenshot. This might delay your deposit approval. Do you want to submit anyway with just the UTR number?");
+        if (!confirmNoProof) return;
       }
     }
     
