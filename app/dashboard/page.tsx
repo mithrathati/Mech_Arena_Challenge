@@ -275,16 +275,25 @@ export default function Dashboard() {
       const formData = new FormData();
       formData.append('file', file);
 
+      // Log for debugging
+      console.log("Attempting upload for file:", file.name, "size:", file.size);
+
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
+        // Don't set Content-Type header, browser will set it with boundary
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        console.error("Upload failed server-side:", data.error);
+        throw new Error(data.error || "Upload failed");
+      }
       
+      console.log("Upload successful:", data.url);
       return data.url;
     } catch (err: any) {
+      console.error("Upload catch block:", err);
       alert("Upload failed: " + err.message);
       return null;
     } finally {
@@ -486,76 +495,78 @@ export default function Dashboard() {
               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{challenges.length} TOTAL</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AnimatePresence mode="popLayout">
-                {challenges.length > 0 ? challenges.map((ch: any) => (
-                  <motion.div 
-                    layout
-                    key={ch.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="glass-panel rounded-xl p-5 border-l-4 border-l-neon-blue hover:neon-border-blue transition-all group"
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Challenge From</p>
-                        <h3 className="font-orbitron font-bold text-neon-blue group-hover:text-white transition-colors">
-                          {ch.challengerId === (session?.user as any).id 
-                            ? ch.challenged?.username || "Unknown Unit" 
-                            : ch.challenger?.username || "Unknown Unit"}
-                        </h3>
-                        <p className="text-[9px] text-neon-purple/80 font-black uppercase tracking-[0.1em] mt-0.5">
-                          Player ID: {ch.challengerId === (session?.user as any).id 
-                            ? ch.challenged?.mechArenaId || "---" 
-                            : ch.challenger?.mechArenaId || "---"}
-                        </p>
+            <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AnimatePresence mode="popLayout">
+                  {challenges.length > 0 ? challenges.map((ch: any) => (
+                    <motion.div 
+                      layout
+                      key={ch.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="glass-panel rounded-xl p-5 border-l-4 border-l-neon-blue hover:neon-border-blue transition-all group"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Challenge From</p>
+                          <h3 className="font-orbitron font-bold text-neon-blue group-hover:text-white transition-colors">
+                            {ch.challengerId === (session?.user as any).id 
+                              ? ch.challenged?.username || "Unknown Unit" 
+                              : ch.challenger?.username || "Unknown Unit"}
+                          </h3>
+                          <p className="text-[9px] text-neon-purple/80 font-black uppercase tracking-[0.1em] mt-0.5">
+                            Player ID: {ch.challengerId === (session?.user as any).id 
+                              ? ch.challenged?.mechArenaId || "---" 
+                              : ch.challenger?.mechArenaId || "---"}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Bet Amount</p>
+                          <p className="font-orbitron font-bold text-neon-green">{profile.currency} {(ch.amount ?? 0).toFixed(2)}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Bet Amount</p>
-                        <p className="font-orbitron font-bold text-neon-green">{profile.currency} {(ch.amount ?? 0).toFixed(2)}</p>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center gap-3 mb-5">
-                      <span className={`text-[10px] uppercase font-black px-2 py-1 rounded bg-white/5 border border-white/10 ${
-                        ch.status === 'PENDING' ? 'text-neon-orange border-neon-orange/30' :
-                        ch.status === 'ACCEPTED' ? 'text-neon-green border-neon-green/30' :
-                        'text-gray-500'
-                      }`}>
-                        {ch.status}
-                      </span>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      {ch.status === 'PENDING' && ch.challengedId === (session?.user as any).id && (
-                        <>
-                          <button onClick={() => handleChallengeAction(ch.id, 'ACCEPT')} className="flex-1 bg-neon-green/10 border border-neon-green/50 text-neon-green py-2 rounded-lg font-bold text-xs uppercase hover:bg-neon-green hover:text-black transition-all">Accept</button>
-                          <button onClick={() => handleChallengeAction(ch.id, 'REJECT')} className="flex-1 bg-red-500/10 border border-red-500/50 text-red-500 py-2 rounded-lg font-bold text-xs uppercase hover:bg-red-500 hover:text-white transition-all">Reject</button>
-                        </>
-                      )}
-                      {(ch.status === 'ACCEPTED' || ch.status === 'COMPLETED') && (
-                        <>
-                          <button onClick={() => setActiveChat(ch.id)} className="flex-1 bg-neon-purple/10 border border-neon-purple/50 text-neon-purple py-2 rounded-lg font-bold text-xs uppercase hover:bg-neon-purple hover:text-white transition-all flex items-center justify-center gap-2">
-                            <MessageSquare className="w-4 h-4" /> Chat
-                          </button>
-                          {((ch.challengerId === (session?.user as any).id && !ch.challengerProof) || 
-                            (ch.challengedId === (session?.user as any).id && !ch.challengedProof)) && (
-                            <button onClick={() => setUploadingFor(ch.id)} className="flex-1 bg-neon-blue/10 border border-neon-blue/50 text-neon-blue py-2 rounded-lg font-bold text-xs uppercase hover:bg-neon-blue hover:text-black transition-all flex items-center justify-center gap-2">
-                              <Camera className="w-4 h-4" /> Upload Proof
+                      <div className="flex items-center gap-3 mb-5">
+                        <span className={`text-[10px] uppercase font-black px-2 py-1 rounded bg-white/5 border border-white/10 ${
+                          ch.status === 'PENDING' ? 'text-neon-orange border-neon-orange/30' :
+                          ch.status === 'ACCEPTED' ? 'text-neon-green border-neon-green/30' :
+                          'text-gray-500'
+                        }`}>
+                          {ch.status}
+                        </span>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        {ch.status === 'PENDING' && ch.challengedId === (session?.user as any).id && (
+                          <>
+                            <button onClick={() => handleChallengeAction(ch.id, 'ACCEPT')} className="flex-1 bg-neon-green/10 border border-neon-green/50 text-neon-green py-2 rounded-lg font-bold text-xs uppercase hover:bg-neon-green hover:text-black transition-all">Accept</button>
+                            <button onClick={() => handleChallengeAction(ch.id, 'REJECT')} className="flex-1 bg-red-500/10 border border-red-500/50 text-red-500 py-2 rounded-lg font-bold text-xs uppercase hover:bg-red-500 hover:text-white transition-all">Reject</button>
+                          </>
+                        )}
+                        {(ch.status === 'ACCEPTED' || ch.status === 'COMPLETED') && (
+                          <>
+                            <button onClick={() => setActiveChat(ch.id)} className="flex-1 bg-neon-purple/10 border border-neon-purple/50 text-neon-purple py-2 rounded-lg font-bold text-xs uppercase hover:bg-neon-purple hover:text-white transition-all flex items-center justify-center gap-2">
+                              <MessageSquare className="w-4 h-4" /> Chat
                             </button>
-                          )}
-                        </>
-                      )}
+                            {((ch.challengerId === (session?.user as any).id && !ch.challengerProof) || 
+                              (ch.challengedId === (session?.user as any).id && !ch.challengedProof)) && (
+                              <button onClick={() => setUploadingFor(ch.id)} className="flex-1 bg-neon-blue/10 border border-neon-blue/50 text-neon-blue py-2 rounded-lg font-bold text-xs uppercase hover:bg-neon-blue hover:text-black transition-all flex items-center justify-center gap-2">
+                                <Camera className="w-4 h-4" /> Upload Proof
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </motion.div>
+                  )) : (
+                    <div className="md:col-span-2 py-12 flex flex-col items-center justify-center glass-panel rounded-2xl border-dashed border-white/5">
+                      <Shield className="w-12 h-12 text-gray-800 mb-4" />
+                      <p className="text-gray-600 font-orbitron text-sm uppercase tracking-widest">No Active Engagements</p>
                     </div>
-                  </motion.div>
-                )) : (
-                  <div className="md:col-span-2 py-12 flex flex-col items-center justify-center glass-panel rounded-2xl border-dashed border-white/5">
-                    <Shield className="w-12 h-12 text-gray-800 mb-4" />
-                    <p className="text-gray-600 font-orbitron text-sm uppercase tracking-widest">No Active Engagements</p>
-                  </div>
-                )}
-              </AnimatePresence>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </section>
 
@@ -618,91 +629,93 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {users
-                .filter((u:any) => 
-                  u.id !== (session?.user as any).id && 
-                  u.username.toLowerCase().includes(searchQuery.toLowerCase()) &&
-                  (!squadPowerMin || u.squadPower >= parseInt(squadPowerMin)) &&
-                  (!squadPowerMax || u.squadPower <= parseInt(squadPowerMax)) &&
-                  (playerTab === 'all' || u.isActive)
-                )
-                .map((user: any, idx: number) => (
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  key={user.id} 
-                  className="glass-panel rounded-xl p-4 sm:p-5 group hover:neon-border-blue transition-all relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-neon-blue/5 rounded-full blur-xl -mr-8 -mt-8"></div>
-                  
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gray-800 flex items-center justify-center border border-white/10 group-hover:border-neon-blue/50 transition-colors overflow-hidden">
-                      <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 group-hover:text-neon-blue transition-colors" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm">{user.username}</h3>
-                        <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-neon-green shadow-[0_0_8px_#39FF14]' : 'bg-gray-600'}`}></div>
+            <div className="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {users
+                  .filter((u:any) => 
+                    u.id !== (session?.user as any).id && 
+                    u.username.toLowerCase().includes(searchQuery.toLowerCase()) &&
+                    (!squadPowerMin || u.squadPower >= parseInt(squadPowerMin)) &&
+                    (!squadPowerMax || u.squadPower <= parseInt(squadPowerMax)) &&
+                    (playerTab === 'all' || u.isActive)
+                  )
+                  .map((user: any, idx: number) => (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    key={user.id} 
+                    className="glass-panel rounded-xl p-4 sm:p-5 group hover:neon-border-blue transition-all relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 w-16 h-16 bg-neon-blue/5 rounded-full blur-xl -mr-8 -mt-8"></div>
+                    
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gray-800 flex items-center justify-center border border-white/10 group-hover:border-neon-blue/50 transition-colors overflow-hidden">
+                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 group-hover:text-neon-blue transition-colors" />
                       </div>
-                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">SQUAD POWER: {user.squadPower || 4200}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-[9px] sm:text-[10px] text-neon-blue font-black uppercase tracking-tighter">ID: {user.mechArenaId}</p>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigator.clipboard.writeText(user.mechArenaId);
-                          }}
-                          className="p-1 hover:bg-white/10 rounded transition-colors group/copy"
-                          title="Copy ID"
-                        >
-                          <Copy className="w-3 h-3 text-gray-600 group-hover/copy:text-neon-blue" />
-                        </button>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-sm">{user.username}</h3>
+                          <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-neon-green shadow-[0_0_8px_#39FF14]' : 'bg-gray-600'}`}></div>
+                        </div>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">SQUAD POWER: {user.squadPower || 4200}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-[9px] sm:text-[10px] text-neon-blue font-black uppercase tracking-tighter">ID: {user.mechArenaId}</p>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigator.clipboard.writeText(user.mechArenaId);
+                            }}
+                            className="p-1 hover:bg-white/10 rounded transition-colors group/copy"
+                            title="Copy ID"
+                          >
+                            <Copy className="w-3 h-3 text-gray-600 group-hover/copy:text-neon-blue" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-2 mb-4">
-                    <button 
-                      onClick={() => {
-                        // Open direct chat logic
-                        const existingChallenge = challenges.find(c => 
-                          (c.challengerId === user.id || c.challengedId === user.id) && 
-                          c.status === 'PENDING'
-                        );
-                        if (existingChallenge) {
-                          setActiveChat(existingChallenge.id);
-                        } else {
-                          // Create a 0-amount challenge for chat negotiation
-                          fetch('/api/challenges', {
-                            method: 'POST',
-                            body: JSON.stringify({ challengedId: user.id, amount: 0 }),
-                          })
-                          .then(res => res.json())
-                          .then(challenge => {
-                            if (challenge.id) {
-                              setChallenges(prev => [challenge, ...prev]);
-                              setActiveChat(challenge.id);
-                            }
-                          });
-                        }
-                      }}
-                      className="flex items-center justify-center gap-2 py-2 bg-white/5 border border-white/10 text-gray-400 rounded-lg hover:bg-neon-blue/10 hover:text-neon-blue hover:border-neon-blue/30 transition-all group/chat"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5 group-hover/chat:scale-110 transition-transform" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">Chat</span>
-                    </button>
-                    <button 
-                      onClick={() => setSelectedUser(user)}
-                      className="flex items-center justify-center gap-2 py-2 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-lg font-orbitron font-bold text-[10px] uppercase tracking-widest hover:bg-neon-blue hover:text-black transition-all active:scale-95"
-                    >
-                      <Sword className="w-3.5 h-3.5" />
-                      Challenge
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      <button 
+                        onClick={() => {
+                          // Open direct chat logic
+                          const existingChallenge = challenges.find(c => 
+                            (c.challengerId === user.id || c.challengedId === user.id) && 
+                            c.status === 'PENDING'
+                          );
+                          if (existingChallenge) {
+                            setActiveChat(existingChallenge.id);
+                          } else {
+                            // Create a 0-amount challenge for chat negotiation
+                            fetch('/api/challenges', {
+                              method: 'POST',
+                              body: JSON.stringify({ challengedId: user.id, amount: 0 }),
+                            })
+                            .then(res => res.json())
+                            .then(challenge => {
+                              if (challenge.id) {
+                                setChallenges(prev => [challenge, ...prev]);
+                                setActiveChat(challenge.id);
+                              }
+                            });
+                          }
+                        }}
+                        className="flex items-center justify-center gap-2 py-2 bg-white/5 border border-white/10 text-gray-400 rounded-lg hover:bg-neon-blue/10 hover:text-neon-blue hover:border-neon-blue/30 transition-all group/chat"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5 group-hover/chat:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Chat</span>
+                      </button>
+                      <button 
+                        onClick={() => setSelectedUser(user)}
+                        className="flex items-center justify-center gap-2 py-2 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-lg font-orbitron font-bold text-[10px] uppercase tracking-widest hover:bg-neon-blue hover:text-black transition-all active:scale-95"
+                      >
+                        <Sword className="w-3.5 h-3.5" />
+                        Challenge
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </section>
         </div>
