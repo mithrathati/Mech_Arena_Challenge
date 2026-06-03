@@ -188,8 +188,8 @@ export default function AdminPanel() {
                       <div className="aspect-video bg-black rounded-lg overflow-hidden border border-slate-700 relative group">
                         {ch.challengerProof ? (
                           <>
-                            <img src={ch.challengerProof} alt="Challenger Proof" className="w-full h-full object-contain" />
-                            <a href={ch.challengerProof} target="_blank" className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] font-bold">
+                            <img src={`/api/admin/view-proof?url=${encodeURIComponent(ch.challengerProof)}`} alt="Challenger Proof" className="w-full h-full object-contain" />
+                            <a href={`/api/admin/view-proof?url=${encodeURIComponent(ch.challengerProof)}`} target="_blank" className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] font-bold text-white">
                               View Full
                             </a>
                           </>
@@ -203,8 +203,8 @@ export default function AdminPanel() {
                       <div className="aspect-video bg-black rounded-lg overflow-hidden border border-slate-700 relative group">
                         {ch.challengedProof ? (
                           <>
-                            <img src={ch.challengedProof} alt="Challenged Proof" className="w-full h-full object-contain" />
-                            <a href={ch.challengedProof} target="_blank" className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] font-bold">
+                            <img src={`/api/admin/view-proof?url=${encodeURIComponent(ch.challengedProof)}`} alt="Challenged Proof" className="w-full h-full object-contain" />
+                            <a href={`/api/admin/view-proof?url=${encodeURIComponent(ch.challengedProof)}`} target="_blank" className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] font-bold text-white">
                               View Full
                             </a>
                           </>
@@ -311,7 +311,15 @@ export default function AdminPanel() {
                           {t.type === 'DEPOSIT' ? (
                             <>
                               {t.transactionId && <p>UTR: {t.transactionId}</p>}
-                              {t.proofUrl && <a href={t.proofUrl} target="_blank" className="text-blue-500 hover:underline">View Screenshot</a>}
+                              {t.proofUrl && (
+                                <a 
+                                  href={`/api/admin/view-proof?url=${encodeURIComponent(t.proofUrl)}`} 
+                                  target="_blank" 
+                                  className="text-blue-500 hover:underline flex items-center gap-1 mt-1"
+                                >
+                                  View Screenshot
+                                </a>
+                              )}
                             </>
                           ) : (
                             <div className="bg-slate-800/50 p-2 rounded border border-slate-700 space-y-1">
