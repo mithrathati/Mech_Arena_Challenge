@@ -12,8 +12,11 @@ export async function POST(req: Request) {
 
     // Check if BLOB_READ_WRITE_TOKEN exists (Vercel Blob)
     if (process.env.BLOB_READ_WRITE_TOKEN) {
+      // If the store is private, we MUST use 'private' access. 
+      // If the store is public, 'public' is preferred.
+      // Since changing to public is difficult in the UI, we'll try private first as per the error message.
       const blob = await put(file.name, file, {
-        access: 'public',
+        access: 'private', 
       });
       return NextResponse.json({ url: blob.url });
     }
