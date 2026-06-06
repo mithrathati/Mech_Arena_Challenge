@@ -33,12 +33,16 @@ import {
 interface UserProfile {
   id: string;
   username: string;
+  mechArenaId: string;
+  country: string;
   balance: number;
   currency: string;
   squadPower: number;
   winStreak: number;
   totalMatches: number;
   totalWins: number;
+  globalRank?: number;
+  totalUsers?: number;
   bankName?: string;
   accountHolder?: string;
   accountNumber?: string;
@@ -75,6 +79,8 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<UserProfile>({ 
     id: '', 
     username: '', 
+    mechArenaId: '',
+    country: '',
     balance: 0, 
     currency: 'USD', 
     squadPower: 0, 
@@ -90,6 +96,7 @@ export default function Dashboard() {
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showSquadPowerModal, setShowSquadPowerModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [supportQuery, setSupportQuery] = useState('');
@@ -100,10 +107,15 @@ export default function Dashboard() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [newSquadPower, setNewSquadPower] = useState('');
+  const [editUsername, setEditUsername] = useState('');
+  const [editMechArenaId, setEditMechArenaId] = useState('');
+  const [editCountry, setEditCountry] = useState('');
+  const [editCurrency, setEditCurrency] = useState('');
   const [transactionAmount, setTransactionAmount] = useState('');
   const [transactionId, setTransactionId] = useState('');
   const [proofUrl, setProofUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   
   // Bank Details State
   const [bankName, setBankName] = useState('');
@@ -195,13 +207,42 @@ export default function Dashboard() {
   }, [activeChat]);
 
   const handleSendMessage = async () => {
-    if (!chatMessage.trim()) return;
-    await fetch(`/api/challenges/${activeChat}/messages`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: chatMessage }),
-    });
-    setChatMessage('');
+    if (!chatMessage.trim() || isSendingMessage || !activeChat) return;
+    
+    const messageContent = chatMessage.trim();
+    setChatMessage(''); // Clear input immediately for speed
+    setIsSendingMessage(true);
+
+    try {
+      // Optimistic update: Add message to UI immediately
+      const tempId = Date.now().toString();
+      const optimisticMessage = {
+        id: tempId,
+        content: messageContent,
+        senderId: (session?.user as any).id,
+        createdAt: new Date().toISOString(),
+        sender: { username: session?.user?.name || 'You' }
+      };
+      setMessages(prev => [...prev, optimisticMessage]);
+
+      const res = await fetch(`/api/challenges/${activeChat}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: messageContent }),
+      });
+
+      if (!res.ok) {
+        // If error, remove optimistic message and restore input
+        setMessages(prev => prev.filter(m => m.id !== tempId));
+        setChatMessage(messageContent);
+        const data = await res.json();
+        console.error("Failed to send message:", data.error);
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
+    } finally {
+      setIsSendingMessage(false);
+    }
   };
 
   const handleChallengeAction = async (id: string, action: string, screenshotUrl?: string) => {
@@ -216,6 +257,31 @@ export default function Dashboard() {
     } else {
       const data = await res.json();
       alert(data.error || "Action failed");
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: editUsername,
+          country: editCountry,
+          currency: editCurrency
+        }),
+      });
+
+      if (res.ok) {
+        setShowProfileModal(false);
+        fetchData();
+        alert("Profile updated successfully!");
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to update profile");
+      }
+    } catch (error) {
+      alert("Error updating profile");
     }
   };
 
@@ -391,6 +457,12 @@ export default function Dashboard() {
           </div>
 
               <div className="flex items-center gap-2 sm:gap-4">
+            <Link 
+              href="/leaderboard"
+              className="hidden sm:flex items-center gap-2 bg-white/5 hover:bg-neon-yellow/20 px-3 py-1.5 rounded-lg border border-white/10 hover:border-neon-yellow/50 transition-all text-gray-400 hover:text-neon-yellow font-orbitron text-[10px] font-bold uppercase tracking-widest"
+            >
+              <Trophy className="w-4 h-4" /> Leaderboard
+            </Link>
             <button 
               onClick={() => setShowSupportModal(true)}
               className="hidden sm:flex items-center gap-2 bg-white/5 hover:bg-neon-blue/20 px-3 py-1.5 rounded-lg border border-white/10 hover:border-neon-blue/50 transition-all text-gray-400 hover:text-neon-blue font-orbitron text-[10px] font-bold uppercase tracking-widest"
@@ -407,6 +479,19 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
+              <button 
+                onClick={() => {
+                  setEditUsername(profile.username);
+                  setEditMechArenaId(profile.mechArenaId);
+                  setEditCountry(profile.country);
+                  setEditCurrency(profile.currency);
+                  setShowProfileModal(true);
+                }}
+                className="p-1.5 sm:p-2 bg-white/5 hover:bg-neon-blue/20 rounded-lg border border-white/10 hover:border-neon-blue/50 transition-all text-gray-400 hover:text-neon-blue"
+                title="Edit Profile"
+              >
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
               <button 
                 onClick={() => setShowChangePasswordModal(true)}
                 className="p-1.5 sm:p-2 bg-white/5 hover:bg-neon-purple/20 rounded-lg border border-white/10 hover:border-neon-purple/50 transition-all text-gray-400 hover:text-neon-purple"
@@ -451,9 +536,24 @@ export default function Dashboard() {
               </div>
 
               <div className="flex-1 text-center md:text-left space-y-3 sm:space-y-2">
-                <h2 className="text-2xl sm:text-3xl font-orbitron font-black tracking-tight uppercase">
-                  PLAYER: <span className="text-neon-blue">{session.user?.name}</span>
-                </h2>
+                <div className="flex items-center justify-center md:justify-start gap-4">
+                  <h2 className="text-2xl sm:text-3xl font-orbitron font-black tracking-tight uppercase">
+                    PLAYER: <span className="text-neon-blue">{profile.username}</span>
+                  </h2>
+                  <button 
+                    onClick={() => {
+                      setEditUsername(profile.username);
+                      setEditMechArenaId(profile.mechArenaId);
+                      setEditCountry(profile.country);
+                      setEditCurrency(profile.currency);
+                      setShowProfileModal(true);
+                    }}
+                    className="p-1 hover:text-neon-blue transition-colors"
+                    title="Edit Details"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
                 <div className="flex flex-wrap justify-center md:justify-start gap-2 sm:gap-4">
                   <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-md border border-white/10 group/sp">
                     <Zap className="w-3.5 h-3.5 text-neon-purple" />
@@ -471,6 +571,10 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
                     <Activity className="w-3.5 h-3.5 text-neon-green" />
                     <span className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Streak: <span className="text-white">{profile.winStreak || 0}</span></span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
+                    <Trophy className="w-3.5 h-3.5 text-neon-yellow" />
+                    <span className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Rank: <span className="text-white">#{profile.globalRank || '---'}</span></span>
                   </div>
                   <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
                     <Shield className="w-3.5 h-3.5 text-neon-blue" />
@@ -847,6 +951,7 @@ export default function Dashboard() {
             <div className="space-y-4">
               <h4 className="font-orbitron font-black text-xs uppercase tracking-widest text-white">Platform</h4>
               <ul className="space-y-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                <li><Link href="/leaderboard" className="text-neon-yellow hover:text-white transition-colors">Global Leaderboard</Link></li>
                 <li><Link href="/terms" className="hover:text-neon-blue transition-colors">Terms of Service</Link></li>
                 <li><Link href="/privacy" className="hover:text-neon-blue transition-colors">Privacy Protocol</Link></li>
               </ul>
@@ -1305,6 +1410,87 @@ export default function Dashboard() {
             </motion.div>
           </motion.div>
         )}
+        {/* Edit Profile Modal */}
+        {showProfileModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#050816]/95 backdrop-blur-xl flex items-center justify-center p-4 z-50"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="glass-panel border-neon-blue/30 p-8 rounded-3xl max-w-sm w-full hud-border"
+            >
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-orbitron font-black text-neon-blue uppercase tracking-tighter">Edit Profile</h2>
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Manage your personal details</p>
+                </div>
+                <button onClick={() => setShowProfileModal(false)} className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">Username</label>
+                  <input 
+                    type="text" 
+                    className="w-full bg-black/50 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-neon-blue transition-colors"
+                    value={editUsername}
+                    onChange={(e) => setEditUsername(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">Mech Arena ID</label>
+                  <input 
+                    type="text" 
+                    disabled
+                    className="w-full bg-black/30 border border-white/5 p-3 rounded-xl text-gray-500 outline-none cursor-not-allowed font-mono text-sm"
+                    value={editMechArenaId}
+                  />
+                  <p className="text-[9px] text-gray-600 italic mt-1">* Contact support to change your Mech Arena ID</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">Country</label>
+                  <input 
+                    type="text" 
+                    className="w-full bg-black/50 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-neon-blue transition-colors"
+                    value={editCountry}
+                    onChange={(e) => setEditCountry(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-orbitron font-bold text-gray-500 uppercase tracking-widest">Currency</label>
+                  <select 
+                    className="w-full bg-black/50 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-neon-blue transition-colors appearance-none"
+                    value={editCurrency}
+                    onChange={(e) => setEditCurrency(e.target.value)}
+                  >
+                    <option value="USD">USD</option>
+                    <option value="INR">INR</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                </div>
+
+                <button 
+                  onClick={handleUpdateProfile} 
+                  className="w-full bg-neon-blue text-black py-4 rounded-xl font-orbitron font-black uppercase tracking-tighter hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_30px_rgba(0,229,255,0.3)] mt-2"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
         {/* Squad Power Update Modal */}
         {showSquadPowerModal && (
           <motion.div 

@@ -13,6 +13,11 @@ export default function AdminPanel() {
   const [error, setError] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<any>(null);
   const [newBalance, setNewBalance] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [newMechArenaId, setNewMechArenaId] = useState('');
+  const [newSquadPower, setNewSquadPower] = useState('');
+  const [newCountry, setNewCountry] = useState('');
+  const [newCurrency, setNewCurrency] = useState('');
   const [adjustmentType, setAdjustmentType] = useState<'DEPOSIT' | 'WITHDRAWAL'>('DEPOSIT');
   const [selectedWinners, setSelectedWinners] = useState<Record<string, string>>({});
   const [viewingHistoryUser, setViewingHistoryUser] = useState<any>(null);
@@ -95,20 +100,29 @@ export default function AdminPanel() {
     }
   };
 
-  const handleUpdateBalance = async (userId: string) => {
+  const handleUpdateUser = async (userId: string) => {
     const res = await fetch('/api/admin/users', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, balance: newBalance, type: adjustmentType }),
+      body: JSON.stringify({ 
+        userId, 
+        balance: newBalance, 
+        type: adjustmentType,
+        username: newUsername,
+        mechArenaId: newMechArenaId,
+        squadPower: newSquadPower,
+        country: newCountry,
+        currency: newCurrency
+      }),
     });
 
     if (res.ok) {
-      alert("Balance updated successfully!");
+      alert("User updated successfully!");
       setEditingUser(null);
       fetchAllData();
     } else {
       const data = await res.json();
-      alert(data.error || "Failed to update balance");
+      alert(data.error || "Failed to update user");
     }
   };
 
@@ -360,6 +374,7 @@ export default function AdminPanel() {
                   <tr>
                     <th className="p-4">Pilot / Mech ID</th>
                     <th className="p-4">Role</th>
+                    <th className="p-4">Country</th>
                     <th className="p-4">Currency</th>
                     <th className="p-4">Balance</th>
                     <th className="p-4 text-right">Actions</th>
@@ -377,6 +392,7 @@ export default function AdminPanel() {
                           {user.role}
                         </span>
                       </td>
+                      <td className="p-4 text-sm">{user.country}</td>
                       <td className="p-4 text-sm font-mono">{user.currency}</td>
                       <td className="p-4 font-bold text-green-400">
                         {user.balance.toFixed(2)}
@@ -393,7 +409,16 @@ export default function AdminPanel() {
                             History
                           </button>
                           <button 
-                            onClick={() => { setEditingUser(user); setNewBalance(user.balance.toString()); setAdjustmentType('DEPOSIT'); }}
+                            onClick={() => { 
+                              setEditingUser(user); 
+                              setNewBalance(user.balance.toString()); 
+                              setNewUsername(user.username);
+                              setNewMechArenaId(user.mechArenaId);
+                              setNewSquadPower(user.squadPower.toString());
+                              setNewCountry(user.country);
+                              setNewCurrency(user.currency);
+                              setAdjustmentType('DEPOSIT'); 
+                            }}
                             className="bg-blue-600/10 text-blue-400 hover:bg-blue-600 hover:text-white px-3 py-1 rounded text-sm font-medium transition-all"
                           >
                             Manage
@@ -490,52 +515,111 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {/* Modal for Editing Balance */}
+        {/* Modal for Editing User Details */}
         {editingUser && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-sm w-full shadow-2xl">
-              <h3 className="text-xl font-bold mb-2 text-blue-400">Edit {editingUser.username}</h3>
-              <p className="text-slate-400 text-sm mb-6">Enter the new balance for this user.</p>
+            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+              <h3 className="text-xl font-bold mb-2 text-blue-400">Manage {editingUser.username}</h3>
+              <p className="text-slate-400 text-sm mb-6">Update user personal and account details.</p>
               
-              <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase">Current Balance</label>
-                  <div className="text-2xl font-mono">${editingUser.balance.toFixed(2)}</div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">Adjustment Type</label>
-                    <select 
-                      value={adjustmentType}
-                      onChange={(e: any) => setAdjustmentType(e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
-                    >
-                      <option value="DEPOSIT">Deposit (+)</option>
-                      <option value="WITHDRAWAL">Withdraw (-)</option>
-                    </select>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Username</label>
+                    <input 
+                      type="text" 
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
                   </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase">Amount ({editingUser.currency})</label>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Mech Arena ID</label>
+                    <input 
+                      type="text" 
+                      value={newMechArenaId}
+                      onChange={(e) => setNewMechArenaId(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Squad Power</label>
                     <input 
                       type="number" 
-                      value={newBalance}
-                      onChange={(e) => setNewBalance(e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={newSquadPower}
+                      onChange={(e) => setNewSquadPower(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                     />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Country</label>
+                    <input 
+                      type="text" 
+                      value={newCountry}
+                      onChange={(e) => setNewCountry(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Currency</label>
+                  <select 
+                    value={newCurrency}
+                    onChange={(e) => setNewCurrency(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="INR">INR</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                </div>
+
+                <div className="pt-4 border-t border-slate-800">
+                  <h4 className="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">Balance Adjustment</h4>
+                  <div className="flex justify-between items-center mb-4 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <span className="text-xs text-slate-400">Current:</span>
+                    <span className="font-mono font-bold text-blue-400">{editingUser.currency} {editingUser.balance.toFixed(2)}</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Type</label>
+                      <select 
+                        value={adjustmentType}
+                        onChange={(e: any) => setAdjustmentType(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      >
+                        <option value="DEPOSIT">Deposit (+)</option>
+                        <option value="WITHDRAWAL">Withdraw (-)</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Amount</label>
+                      <input 
+                        type="number" 
+                        value={newBalance}
+                        onChange={(e) => setNewBalance(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex gap-3 pt-4">
                   <button 
-                    onClick={() => handleUpdateBalance(editingUser.id)}
-                    className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded-lg font-bold"
+                    onClick={() => handleUpdateUser(editingUser.id)}
+                    className="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold text-sm transition-all"
                   >
-                    Save Changes
+                    Save All Changes
                   </button>
                   <button 
                     onClick={() => setEditingUser(null)}
-                    className="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-lg font-bold"
+                    className="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold text-sm transition-all text-slate-400"
                   >
                     Cancel
                   </button>

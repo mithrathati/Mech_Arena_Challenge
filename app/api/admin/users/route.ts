@@ -44,36 +44,68 @@ export async function PATCH(req: Request) {
   }
 
   try {
-    const { userId, balance, role, type } = await req.json(); // type: 'DEPOSIT' or 'WITHDRAWAL'
+    const { userId, balance, role, type, username, mechArenaId, squadPower, country, currency } = await req.json(); // type: 'DEPOSIT' or 'WITHDRAWAL'
     
     const userToUpdate = await prisma.user.findUnique({ where: { id: userId } });
     if (!userToUpdate) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: { 
-        balance: parseFloat(balance),
-        role: role 
-      }
-    });
+    const updateData: any = {};
+    
+    if (balance !== undefined) updateData.balance = parseFloat(balance);
+    if (role !== undefined) updateData.role = role;
+    if (username !== undefined) updateData.username = username;
+    if (mechArenaId !== undefined) updateData.mechArenaId = mechArenaId;
+    if (squadPower !== undefined) updateData.squadPower = parseInt(squadPower);
+    if (country !== undefined) updateData.country = country;
+    if (currency !== undefined) updateData.currency = currency;
 
-    // Create a transaction record reflecting the change
-    const diff = parseFloat(balance) - userToUpdate.balance;
-    if (diff !== 0) {
-      await prisma.transaction.create({
-        data: {
-          userId,
-          type: type || (diff > 0 ? 'DEPOSIT' : 'WITHDRAWAL'),
-          amount: Math.abs(diff),
-          currency: updatedUser.currency,
-          status: 'APPROVED',
-          transactionId: 'ADMIN_ADJUSTMENT'
+    // Check for unique constraints if username or mechArenaId is being updated
+    if (username || mechArenaId) {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            username ? { username: username } : {},
+            mechArenaId ? { mechArenaId: mechArenaId } : {}
+          ],
+          NOT: { id: userId }
         }
       });
+
+      if (existingUser) {
+        if (username && existingUser.username === username) {
+          return NextResponse.json({ error: "Username already taken" }, { status: 400 });
+        }
+        if (mechArenaId && existingUser.mechArenaId === mechArenaId) {
+          return NextResponse.json({ error: "Mech Arena ID already taken" }, { status: 400 });
+        }
+      }
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData
+    });
+
+    // Create a transaction record reflecting the change if balance was updated
+    if (balance !== undefined) {
+      const diff = parseFloat(balance) - userToUpdate.balance;
+      if (diff !== 0) {
+        await prisma.transaction.create({
+          data: {
+            userId,
+            type: type || (diff > 0 ? 'DEPOSIT' : 'WITHDRAWAL'),
+            amount: Math.abs(diff),
+            currency: updatedUser.currency,
+            status: 'APPROVED',
+            transactionId: 'ADMIN_ADJUSTMENT'
+          }
+        });
+      }
     }
 
     return NextResponse.json(updatedUser);
   } catch (error) {
+    console.error("Admin update error:", error);
     return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
   }
 }
